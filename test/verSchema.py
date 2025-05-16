@@ -1,7 +1,7 @@
 import sqlite3
 
 def mostrar_schema():
-    con = sqlite3.connect('../data/loja.db')  # ajuste o caminho se necessário
+    con = sqlite3.connect('../data/loja.db')
     cursor = con.cursor()
 
     print("📄 Esquema atual do banco de dados:\n")
