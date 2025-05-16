@@ -1,6 +1,6 @@
 import sqlite3
 
-con = sqlite3.connect('../data/loja.db')  # ajuste o caminho conforme sua estrutura
+con = sqlite3.connect('../data/loja.db')
 cursor = con.cursor()
 
 cursor.execute("SELECT id, nome, preco, estoque FROM produto")

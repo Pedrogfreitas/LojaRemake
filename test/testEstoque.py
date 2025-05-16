@@ -1,7 +1,6 @@
 import sqlite3
 
-# Conectando ao banco de dados
-con = sqlite3.connect('../data/loja.db')  # ajuste o caminho conforme sua organização
+con = sqlite3.connect('../data/loja.db')
 cursor = con.cursor()
 
 # Lista de produtos: (nome, preco, estoque)
