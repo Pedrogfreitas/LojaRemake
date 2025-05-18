@@ -1,6 +1,4 @@
-import sqlite3
-
-DB_PATH = '../data/loja.db'
+from data import conectar, desconectar
 
 def menu_estoque():
     while True:
@@ -21,19 +19,10 @@ def menu_estoque():
         else:
             print("❌ Opção inválida. Tente novamente.")
 
-def conectar():
-    con = sqlite3.connect(DB_PATH)
-    cursor = con.cursor()
-    return con, cursor
-
-def desconectar(con):
-    con.commit()
-    con.close()
-
 def listar_produtos():
     con, cursor = conectar()
 
-    cursor.execute("SELECT id, nome, preco, estoque, descricao, imagem FROM produto")
+    cursor.execute("SELECT id, nome, preco, estoque, descricao, imagem FROM produto ORDER BY id")
     produtos = cursor.fetchall()
 
     print("\nProdutos cadastrados:")
@@ -41,7 +30,8 @@ def listar_produtos():
     for p in produtos:
         print(f"ID: {p[0]} | Nome: {p[1]} | Preço: R$ {p[2]:.2f} | Estoque: {p[3]}")
         if p[4]:
-            print(f"Descrição: {p[4]}")
+            descricao = (p[4][:60] + '...') if len(p[4]) > 60 else p[4]
+            print(f"Descrição: {descricao}")
         if p[5]:
             print(f"Imagem: {p[5]}")
         print("-" * 50)
@@ -51,13 +41,21 @@ def listar_produtos():
 def adicionar_produto():
     con, cursor = conectar()
 
-    nome = input("Digite o nome do produto: ")
+    nome = input("Digite o nome do produto: ").strip()
+    if not nome:
+        print("❌ Nome do produto não pode ser vazio.")
+        desconectar(con)
+        return
 
     try:
         preco = float(input("Digite o preço do produto: "))
+        if preco < 0:
+            raise ValueError("Preço não pode ser negativo.")
         estoque = int(input("Digite a quantidade em estoque: "))
-    except ValueError:
-        print("❌ Valor numérico inválido.")
+        if estoque < 0:
+            raise ValueError("Estoque não pode ser negativo.")
+    except ValueError as e:
+        print(f"❌ {e}")
         desconectar(con)
         return
 
@@ -107,10 +105,16 @@ def atualizar_produto():
     try:
         if coluna == "preco":
             novo_valor = float(novo_valor)
+            if novo_valor < 0:
+                raise ValueError("Preço não pode ser negativo.")
         elif coluna == "estoque":
             novo_valor = int(novo_valor)
-    except ValueError:
-        print("❌ Valor inválido para o tipo da coluna.")
+            if novo_valor < 0:
+                raise ValueError("Estoque não pode ser negativo.")
+        elif coluna == "nome" and not novo_valor.strip():
+            raise ValueError("Nome do produto não pode ser vazio.")
+    except ValueError as e:
+        print(f"❌ {e}")
         desconectar(con)
         return
 
@@ -123,8 +127,20 @@ def remover_produto():
 
     try:
         id_produto = int(input("Digite o ID do produto que deseja remover: "))
+        cursor.execute("SELECT 1 FROM produto WHERE id = ?", (id_produto,))
+        if not cursor.fetchone():
+            print("❌ Produto não encontrado.")
+            desconectar(con)
+            return
     except ValueError:
         print("❌ ID inválido.")
+        desconectar(con)
+        return
+
+    print(f"Tem certeza que deseja remover o produto com ID {id_produto}? (S/N)")
+    confirmacao = input().strip().lower()
+    if confirmacao != "s":
+        print("❎ Operação cancelada.")
         desconectar(con)
         return
 
