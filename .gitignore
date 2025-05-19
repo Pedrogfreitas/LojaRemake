@@ -175,3 +175,6 @@ cython_debug/
 
 ProgramaLoja.c
 lojafake.db
+Lembretes.md
+test/
+tests/
